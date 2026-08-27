@@ -286,6 +286,7 @@ body {
   font-size: .85rem;
   font-weight: 700;
 }
+.pc-only-note a { color: #fff; text-decoration: underline; }
 
 @media (max-width: 640px) {
   .pc-only-note { display: block; }
