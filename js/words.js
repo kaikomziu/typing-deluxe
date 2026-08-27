@@ -119,13 +119,72 @@ const WORD_SETS = {
   },
 };
 
+// ===== マイリスト(Cookie保存) =====
+const MYLIST_COOKIE = "td_mylist";
+
+function tdSetCookie(name, value, days) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+}
+function tdGetCookie(name) {
+  const m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+// カタカナ→ひらがな(長音符ーはそのまま)
+function kataToHira(s) {
+  return s.replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+}
+
+// テキスト(1行=1お題、「表示,よみ」または「よみ」)を配列へ
+function parseMyListText(text) {
+  const out = [];
+  (text || "").split(/\r?\n/).forEach((raw) => {
+    const line = raw.trim();
+    if (!line) return;
+    const parts = line.split(/\s*[,、\t]\s*/);
+    let t, k;
+    if (parts.length >= 2 && parts[parts.length - 1]) {
+      k = parts.pop().trim();
+      t = parts.join("、").trim();
+    } else {
+      t = k = line;
+    }
+    k = kataToHira(k).replace(/\s+/g, "");
+    if (k) out.push({ t: t || k, k });
+  });
+  return out;
+}
+
+function myListToText(list) {
+  return (list || []).map((w) => (w.t && w.t !== w.k ? `${w.t},${w.k}` : w.k)).join("\n");
+}
+
+function getMyList() {
+  try {
+    const arr = JSON.parse(tdGetCookie(MYLIST_COOKIE) || "[]");
+    return Array.isArray(arr) ? arr.filter((w) => w && w.k) : [];
+  } catch (e) { return []; }
+}
+
+// 保存(Cookieに収まらなければ false)
+function saveMyList(list) {
+  const json = JSON.stringify(list);
+  if (encodeURIComponent(json).length > 3900) return false;
+  tdSetCookie(MYLIST_COOKIE, json, 365);
+  return true;
+}
+
 function buildDeck(setKey) {
   let pool = [];
   if (setKey === "mix") {
     for (const k in WORD_SETS) pool = pool.concat(WORD_SETS[k].words);
+  } else if (setKey === "mylist") {
+    pool = getMyList();
   } else {
     pool = WORD_SETS[setKey].words.slice();
   }
+  if (pool.length === 0) pool = WORD_SETS.animals.words.slice();
   // シャッフル
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

@@ -50,6 +50,9 @@
 
       <h2 class="panel-title">お題カテゴリ</h2>
       <div class="opt-row wrap-row" id="catRow"></div>
+      <div class="opt-row" style="margin-top:10px">
+        <button id="editListBtn" class="opt">✏️ マイリストを編集</button>
+      </div>
 
       <div class="best-box" id="bestBox"></div>
 
@@ -104,6 +107,20 @@
       </div>
     </div>
   </section>
+
+  <!-- ===== マイリスト編集 ===== -->
+  <div id="listModal" class="modal" hidden>
+    <div class="modal-box">
+      <h2 class="panel-title">マイリスト（このブラウザにCookie保存）</h2>
+      <p class="opt-desc">1行に1つ。<code>表示,よみ</code> または <code>よみ</code> だけ。カタカナは自動でひらがなに変換。伸ばす音は <code>ー</code>。漢字など打てない文字がある行は除外されます。</p>
+      <textarea id="listText" class="list-text" spellcheck="false" placeholder="セーブデータ,せーぶでーた&#10;きょうもがんばろう&#10;TYPING,たいぴんぐ"></textarea>
+      <p class="list-status" id="listStatus"></p>
+      <div class="opt-row">
+        <button id="listSaveBtn" class="start-btn">保存する</button>
+        <button id="listCancelBtn" class="opt">キャンセル</button>
+      </div>
+    </div>
+  </div>
 
 </main>
 

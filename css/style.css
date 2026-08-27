@@ -230,6 +230,45 @@ body {
 .result-grid b { font-size: 1.25rem; font-family: var(--mono); }
 .newbest { color: var(--gold); font-weight: 800; margin: 16px 0 4px; }
 
+/* ===== マイリスト編集モーダル ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 6, 12, .72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 50;
+}
+.modal[hidden] { display: none; }
+.modal-box {
+  background: linear-gradient(180deg, var(--bg2), var(--panel));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px;
+  width: 100%;
+  max-width: 560px;
+}
+.list-text {
+  width: 100%;
+  min-height: 220px;
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: .95rem;
+  line-height: 1.7;
+  resize: vertical;
+}
+.list-text:focus { outline: none; border-color: var(--accent); }
+.list-status { margin: 10px 0 4px; font-size: .84rem; color: var(--dim); min-height: 20px; }
+.list-status.warn { color: var(--gold); }
+.list-status.ok { color: var(--good); }
+
 .site-footer {
   border-top: 1px solid var(--line);
   padding: 16px;

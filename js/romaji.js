@@ -54,9 +54,22 @@ function toChunks(kana) {
       continue;
     }
     if (ROMAJI_MAP[c]) { chunks.push({ k: c, cands: ROMAJI_MAP[c].slice() }); continue; }
-    chunks.push({ k: c, cands: [c] }); // フォールバック(英数字など)
+    chunks.push({ k: c, cands: [c.toLowerCase()] }); // フォールバック(英数字など)
   }
   return chunks;
+}
+
+// 打てない文字(漢字・カタカナ等)を列挙。マイリストの検証用。
+function untypeableChars(kana) {
+  const bad = [];
+  for (const ch of toChunks(kana)) {
+    if (ch.sokuon || ch.hatsuon) continue;
+    if (ch.cands.length === 1 && ch.cands[0] === ch.k.toLowerCase() &&
+        !/^[a-z0-9,.\-'/ ]$/i.test(ch.k)) {
+      bad.push(ch.k);
+    }
+  }
+  return bad;
 }
 
 class Typer {

@@ -29,27 +29,41 @@ const MODE_DESC = {
   sudden: "1文字でもミスしたら即終了。全カテゴリのお題を打ち続ける。",
 };
 
-// ---------- スタート画面の設定 UI ----------
-function initStartUI() {
-  // カテゴリボタン
+// ---------- カテゴリボタン ----------
+function refreshCatRow() {
   const catRow = $("catRow");
   const cats = [["mix", "ミックス"]].concat(
     Object.keys(WORD_SETS).map((k) => [k, WORD_SETS[k].label])
   );
-  cats.forEach(([key, label], i) => {
+  const myCount = getMyList().length;
+  if (myCount > 0) cats.push(["mylist", `⭐ マイリスト (${myCount})`]);
+
+  catRow.innerHTML = "";
+  cats.forEach(([key, label]) => {
     const b = document.createElement("button");
-    b.className = "opt" + (i === 0 ? " active" : "");
+    b.className = "opt" + (key === S.cat ? " active" : "");
     b.dataset.val = key;
     b.textContent = label;
     catRow.appendChild(b);
   });
-  catRow.addEventListener("click", (e) => {
+  // 選択中のカテゴリが消えた場合はミックスへ
+  if (!cats.some(([k]) => k === S.cat)) {
+    S.cat = "mix";
+    catRow.firstChild.classList.add("active");
+  }
+}
+
+// ---------- スタート画面の設定 UI ----------
+function initStartUI() {
+  refreshCatRow();
+  $("catRow").addEventListener("click", (e) => {
     const b = e.target.closest(".opt");
     if (!b) return;
-    [...catRow.children].forEach((c) => c.classList.toggle("active", c === b));
+    [...$("catRow").children].forEach((c) => c.classList.toggle("active", c === b));
     S.cat = b.dataset.val;
     refreshBest();
   });
+  initListEditor();
 
   // モード
   $("modeRow").addEventListener("click", (e) => {
@@ -77,7 +91,7 @@ function initStartUI() {
 
   buildKeyboard();
   refreshBest();
-  $("verText").textContent = "v" + CHANGELOG[0].version;
+  $("verText").textContent = "v" + CHANGELOG[CHANGELOG.length - 1].version;
 }
 
 // ---------- ハイスコア ----------
@@ -96,7 +110,8 @@ function refreshBest() {
   const b = loadBest();
   const modeName = S.mode === "time" ? `タイムアタック ${S.timeSec}秒`
     : S.mode === "count" ? `お題数 ${S.count}問` : "サドンデス";
-  const catName = S.cat === "mix" ? "ミックス" : WORD_SETS[S.cat].label;
+  const catName = S.cat === "mix" ? "ミックス"
+    : S.cat === "mylist" ? "マイリスト" : WORD_SETS[S.cat].label;
   $("bestBox").innerHTML = b
     ? `${modeName}・${catName} のベスト： <b>${b.score.toLocaleString()}</b> 点／${b.kpm} KPM／正確率 ${b.acc}%`
     : `${modeName}・${catName}： まだ記録がありません`;
@@ -338,8 +353,74 @@ function abort() {
   refreshBest();
 }
 
+// ---------- マイリスト編集 ----------
+function listModalOpen() { return !$("listModal").hidden; }
+
+function validateListText() {
+  const list = parseMyListText($("listText").value);
+  const badLines = [];
+  const clean = [];
+  list.forEach((w, i) => {
+    const bad = untypeableChars(w.k);
+    if (bad.length) badLines.push(i + 1);
+    else clean.push(w);
+  });
+  const st = $("listStatus");
+  if (list.length === 0) {
+    st.className = "list-status";
+    st.textContent = "お題を1行ずつ入力してください。";
+  } else if (badLines.length) {
+    st.className = "list-status warn";
+    st.textContent = `有効 ${clean.length} 件／打てない文字を含む行 ${badLines.join(", ")} は保存時に除外されます。`;
+  } else {
+    st.className = "list-status ok";
+    st.textContent = `有効 ${clean.length} 件。`;
+  }
+  return clean;
+}
+
+function openListEditor() {
+  $("listText").value = myListToText(getMyList());
+  $("listModal").hidden = false;
+  validateListText();
+  $("listText").focus();
+}
+function closeListEditor() { $("listModal").hidden = true; }
+
+function initListEditor() {
+  $("editListBtn").addEventListener("click", openListEditor);
+  $("listCancelBtn").addEventListener("click", closeListEditor);
+  $("listText").addEventListener("input", validateListText);
+  $("listSaveBtn").addEventListener("click", () => {
+    const clean = validateListText();
+    if (clean.length === 0) {
+      // 空保存 = マイリスト削除
+      saveMyList([]);
+      if (S.cat === "mylist") S.cat = "mix";
+      refreshCatRow();
+      refreshBest();
+      closeListEditor();
+      return;
+    }
+    if (!saveMyList(clean)) {
+      const st = $("listStatus");
+      st.className = "list-status warn";
+      st.textContent = "リストが大きすぎてCookieに保存できません。お題を減らしてください。";
+      return;
+    }
+    S.cat = "mylist";
+    refreshCatRow();
+    refreshBest();
+    closeListEditor();
+  });
+}
+
 // ---------- グローバル操作 ----------
 document.addEventListener("keydown", (e) => {
+  if (listModalOpen()) {
+    if (e.key === "Escape") { e.preventDefault(); closeListEditor(); }
+    return; // モーダル表示中はゲーム操作を止める
+  }
   if (e.key === "Escape") { abort(); return; }
   if (e.key === "Enter") {
     if (!$("screen-start").hidden) { startGame(); return; }
