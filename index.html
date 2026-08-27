@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TYPING DELUXE</title>
+<meta name="description" content="複数ローマ字入力対応のタイピングゲーム。タイムアタック・お題数・サドンデスの3モード、KPM/正確率/コンボ判定、オンスクリーンキーボードで次のキーをハイライト。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌨️</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <h1 class="logo"><span class="logo-emoji">⌨️</span> TYPING <span class="logo-accent">DELUXE</span></h1>
+  <button id="muteBtn" class="icon-btn" title="音のオン/オフ" aria-label="音のオン/オフ">🔊</button>
+</header>
+
+<p class="pc-only-note">⌨️ このゲームはPCのキーボード専用です</p>
+
+<main class="wrap">
+
+  <!-- ===== スタート画面 ===== -->
+  <section id="screen-start" class="screen">
+    <div class="panel">
+      <h2 class="panel-title">モード</h2>
+      <div class="opt-row" id="modeRow">
+        <button class="opt active" data-mode="time">タイムアタック</button>
+        <button class="opt" data-mode="count">お題数</button>
+        <button class="opt" data-mode="sudden">サドンデス</button>
+      </div>
+      <p class="opt-desc" id="modeDesc">制限時間内にできるだけ多く打つ。ミスしても続行。</p>
+
+      <div id="subTime" class="sub-opt">
+        <h3 class="sub-title">制限時間</h3>
+        <div class="opt-row" data-sub="time">
+          <button class="opt active" data-val="60">60秒</button>
+          <button class="opt" data-val="90">90秒</button>
+          <button class="opt" data-val="120">120秒</button>
+        </div>
+      </div>
+
+      <div id="subCount" class="sub-opt" hidden>
+        <h3 class="sub-title">お題の数</h3>
+        <div class="opt-row" data-sub="count">
+          <button class="opt active" data-val="25">25問</button>
+          <button class="opt" data-val="50">50問</button>
+          <button class="opt" data-val="100">100問</button>
+        </div>
+      </div>
+
+      <h2 class="panel-title">お題カテゴリ</h2>
+      <div class="opt-row wrap-row" id="catRow"></div>
+
+      <div class="best-box" id="bestBox"></div>
+
+      <button id="startBtn" class="start-btn">スタート（Enter）</button>
+      <p class="hint">PC・キーボード専用。ローマ字入力（<code>shi</code>／<code>si</code>、<code>fu</code>／<code>hu</code>、<code>nn</code>、<code>っ</code>=子音重ね など）に対応。<kbd>Esc</kbd>で中断。</p>
+    </div>
+  </section>
+
+  <!-- ===== プレイ画面 ===== -->
+  <section id="screen-play" class="screen" hidden>
+    <div class="stats">
+      <div class="stat"><span class="stat-label" id="timeLabel">残り</span><span class="stat-val" id="stTime">60.0</span></div>
+      <div class="stat"><span class="stat-label">スコア</span><span class="stat-val" id="stScore">0</span></div>
+      <div class="stat"><span class="stat-label">KPM</span><span class="stat-val" id="stKpm">0</span></div>
+      <div class="stat"><span class="stat-label">正確率</span><span class="stat-val" id="stAcc">100%</span></div>
+      <div class="stat"><span class="stat-label">コンボ</span><span class="stat-val" id="stCombo">0</span></div>
+      <div class="stat"><span class="stat-label">ミス</span><span class="stat-val" id="stMiss">0</span></div>
+    </div>
+
+    <div class="progress-line"><div class="progress-bar" id="progressBar"></div></div>
+    <p class="qcount" id="qcount"></p>
+
+    <div class="card" id="card">
+      <div class="disp" id="disp"></div>
+      <div class="kana" id="kana"></div>
+      <div class="roma" id="roma"></div>
+    </div>
+
+    <div class="keyboard" id="keyboard"></div>
+  </section>
+
+  <!-- ===== リザルト画面 ===== -->
+  <section id="screen-result" class="screen" hidden>
+    <div class="panel result">
+      <p class="result-cap" id="resultCap">RESULT</p>
+      <p class="rank" id="rank">—</p>
+      <p class="rank-sub" id="rankSub"></p>
+      <div class="result-grid">
+        <div><span>スコア</span><b id="rScore">0</b></div>
+        <div><span>KPM</span><b id="rKpm">0</b></div>
+        <div><span>正確率</span><b id="rAcc">0%</b></div>
+        <div><span>最大コンボ</span><b id="rCombo">0</b></div>
+        <div><span>入力文字数</span><b id="rChars">0</b></div>
+        <div><span>ミス</span><b id="rMiss">0</b></div>
+        <div><span>完了お題</span><b id="rWords">0</b></div>
+        <div><span>経過</span><b id="rElapsed">0s</b></div>
+      </div>
+      <p class="newbest" id="newBest" hidden>🏆 ハイスコア更新！</p>
+      <div class="opt-row">
+        <button id="retryBtn" class="start-btn">もう一度（Enter）</button>
+        <button id="backBtn" class="opt">設定に戻る</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>TYPING DELUXE — ハイスコア・音設定はこのブラウザに保存されます。<span id="verText"></span></p>
+</footer>
+
+<script src="js/version.js"></script>
+<script src="js/words.js"></script>
+<script src="js/romaji.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
