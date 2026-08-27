@@ -104,7 +104,7 @@ function refreshBest() {
 
 // ---------- キーボード ----------
 const KB_ROWS = [
-  "qwertyuiop".split(""),
+  "qwertyuiop".split("").concat("-"),
   "asdfghjkl".split(""),
   "zxcvbnm".split(""),
 ];
